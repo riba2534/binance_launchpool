@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>币安LaunchPool新币挖矿计算器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 40px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .bnb-price {
+            text-align: center;
+            font-size: 20px;
+            color: #0d47a1;
+            margin-bottom: 40px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #34495e;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #ffffff;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .ratio-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .ratio-group > div {
+            flex: 1;
+        }
+
+        .btn-wrapper {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: #ffffff;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        #manual_price_section {
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        #manual_price_section p {
+            font-size: 16px;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        #manual_price_section input {
+            width: 100%;
+            max-width: 500px;
+            padding: 14px;
+            border: 1px solid #ffeeba;
+            background-color: #fff8e1;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* 结果模块样式 */
+        .results {
+            max-width: 500px;
+            margin: 60px auto 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+
+        .results h2 {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* 垂直表格样式 */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table tr:not(:last-child) {
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .results-table td {
+            padding: 12px 0;
+        }
+
+        .label-cell {
+            font-weight: 600;
+            font-size: 16px;
+            color: #34495e;
+            vertical-align: top;
+        }
+
+        .value-cell {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: right;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .form-group input,
+            #manual_price_section input {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .btn {
+                font-size: 16px;
+                padding: 14px 30px;
+            }
+
+            .results h2 {
+                font-size: 22px;
+            }
+
+            .results-table td {
+                font-size: 14px;
+            }
+
+            .value-cell {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>币安LaunchPool新币挖矿计算器</h1>
+    <div class="bnb-price" id="bnb_price_display">正在获取 BNB 价格...</div>
+
+    <div class="form-container">
+        <div class="form-group">
+            <label for="total_newcoin">Launchpool 分配的总 NEWCOIN 数量</label>
+            <input type="number" id="total_newcoin" placeholder="例如: 4800000" min="0">
+        </div>
+        <div class="form-group">
+            <label for="days">挖矿周期天数</label>
+            <input type="number" id="days" placeholder="例如: 2" min="1">
+        </div>
+        <div class="form-group">
+            <label for="fdusd_apy">FDUSD 池年化收益率 (如5% 输入0.05)</label>
+            <input type="number" step="0.0001" id="fdusd_apy" placeholder="例如: 1.2" min="0" value="1.2">
+        </div>
+        <div class="form-group">
+            <label for="total_fdusd_staked">FDUSD 池总质押量</label>
+            <input type="number" id="total_fdusd_staked" placeholder="例如: 1107945920" min="0" value="1107945920">
+        </div>
+        <div class="form-group">
+            <label for="total_bnb_staked">BNB 池总质押量</label>
+            <input type="number" id="total_bnb_staked" placeholder="例如: 17663825" min="0" value="17663825">
+        </div>
+        <div class="form-group ratio-group">
+            <div>
+                <label for="fdusd_ratio">FDUSD 分配比例 (%)</label>
+                <input type="number" id="fdusd_ratio" placeholder="例如: 15" min="0" max="100" value="15">
+            </div>
+            <div>
+                <label for="bnb_ratio">BNB 分配比例 (%)</label>
+                <input type="number" id="bnb_ratio" placeholder="例如: 85" min="0" max="100" value="85">
+            </div>
+        </div>
+
+        <div id="manual_price_section" style="display: none;">
+            <p>无法获取 BNB 价格，请手动输入:</p>
+            <input type="number" id="manual_bnb_price" placeholder="例如: 720.93" min="0" step="0.01">
+        </div>
+
+        <div class="btn-wrapper">
+            <button class="btn" onclick="calculate()">计算</button>
+        </div>
+    </div>
+
+    <div class="results" id="results" style="display: none;">
+        <h2>计算结果</h2>
+        <table class="results-table">
+            <tr>
+                <td class="label-cell">推导出的 NEWCOIN 价格 (FDUSD计价):</td>
+                <td class="value-cell" id="line_newcoin_price">-</td>
+            </tr>
+            <tr>
+                <td class="label-cell">投入10,000 FDUSD在FDUSD池最终挖矿收益 (FDUSD计价):</td>
+                <td class="value-cell" id="line_fdusd_profit">-</td>
+            </tr>
+            <tr>
+                <td class="label-cell">投入10,000 FDUSD购买BNB并质押BNB池最终挖矿收益 (FDUSD计价):</td>
+                <td class="value-cell" id="line_bnb_profit">-</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        let globalBNBPrice = null;
+
+        async function fetchBNBPrice() {
+            try {
+                let response = await fetch('https://www.suitechsui.red/api/v3/ticker/price?symbol=BNBFDUSD');
+                let data = await response.json();
+                if (data.symbol === "BNBFDUSD" && data.price) {
+                    let bnbPrice = parseFloat(data.price);
+                    document.getElementById('bnb_price_display').innerText = `当前 BNB 价格: ${bnbPrice} FDUSD`;
+                    return bnbPrice;
+                } else {
+                    document.getElementById('bnb_price_display').innerText = `无法获取 BNB 价格`;
+                    document.getElementById('manual_price_section').style.display = 'block';
+                    return null;
+                }
+            } catch (error) {
+                console.error('获取 BNB 价格失败:', error);
+                document.getElementById('bnb_price_display').innerText = `无法获取 BNB 价格`;
+                document.getElementById('manual_price_section').style.display = 'block';
+                return null;
+            }
+        }
+
+        window.onload = async function() {
+            globalBNBPrice = await fetchBNBPrice();
+        }
+
+        function calculate_newcoin_price(total_newcoin, days, fdusd_apy, total_fdusd_staked, bnb_ratio, fdusd_ratio) {
+            let fdusd_newcoin = total_newcoin * (fdusd_ratio / 100);
+            let newcoin_per_fdusd_total = fdusd_newcoin / total_fdusd_staked;
+            let newcoin_per_fdusd_per_year = (newcoin_per_fdusd_total / days) * 365;
+            let p_newcoin = fdusd_apy / newcoin_per_fdusd_per_year;
+            return p_newcoin;
+        }
+
+        function calculate_earnings(total_newcoin, days, fdusd_apy, total_fdusd_staked, total_bnb_staked, bnb_price,
+                                   invest_fdusd=10000, invest_u=10000, bnb_ratio=85, fdusd_ratio=15) {
+            let p_newcoin = calculate_newcoin_price(total_newcoin, days, fdusd_apy, total_fdusd_staked, bnb_ratio, fdusd_ratio);
+            let fdusd_newcoin = total_newcoin * (fdusd_ratio / 100);
+            let bnb_newcoin = total_newcoin * (bnb_ratio / 100);
+
+            let user_fdusd_share = invest_fdusd / total_fdusd_staked;
+            let user_fdusd_newcoin = fdusd_newcoin * user_fdusd_share;
+            let user_fdusd_value = user_fdusd_newcoin * p_newcoin;
+
+            let user_bnb_amount = invest_u / bnb_price;
+            let user_bnb_share = user_bnb_amount / total_bnb_staked;
+            let user_bnb_newcoin = bnb_newcoin * user_bnb_share;
+            let user_bnb_value = user_bnb_newcoin * p_newcoin;
+
+            return { p_newcoin, user_fdusd_value, user_bnb_value };
+        }
+
+        function calculate() {
+            let total_newcoin = parseFloat(document.getElementById('total_newcoin').value);
+            let days = parseInt(document.getElementById('days').value);
+            let fdusd_apy = parseFloat(document.getElementById('fdusd_apy').value);
+            let total_fdusd_staked = parseFloat(document.getElementById('total_fdusd_staked').value);
+            let total_bnb_staked = parseFloat(document.getElementById('total_bnb_staked').value);
+            let fdusd_ratio = parseFloat(document.getElementById('fdusd_ratio').value);
+            let bnb_ratio = parseFloat(document.getElementById('bnb_ratio').value);
+            let bnb_price = globalBNBPrice;
+
+            if (document.getElementById('manual_price_section').style.display === 'block') {
+                let manual_bnb_price = parseFloat(document.getElementById('manual_bnb_price').value);
+                if (isNaN(manual_bnb_price) || manual_bnb_price <= 0) {
+                    alert('请确保手动输入的 BNB 价格是有效的正数。');
+                    return;
+                }
+                bnb_price = manual_bnb_price;
+            }
+
+            if (isNaN(total_newcoin) || isNaN(days) || isNaN(fdusd_apy) || isNaN(total_fdusd_staked) ||
+                isNaN(total_bnb_staked) || isNaN(fdusd_ratio) || isNaN(bnb_ratio) ||
+                total_newcoin <= 0 || days <= 0 || fdusd_apy <= 0 || total_fdusd_staked <= 0 ||
+                total_bnb_staked <= 0 || fdusd_ratio < 0 || bnb_ratio < 0 ||
+                (fdusd_ratio + bnb_ratio) !== 100) {
+                alert('请确保所有输入项都是有效的正数，并且 FDUSD 和 BNB 分配比例之和为100%。');
+                return;
+            }
+
+            if (!bnb_price) {
+                alert('BNB 价格未获取成功，请稍后再试或手动输入价格。');
+                return;
+            }
+
+            let results = calculate_earnings(total_newcoin, days, fdusd_apy, total_fdusd_staked, total_bnb_staked, bnb_price,
+                                             10000, 10000, bnb_ratio, fdusd_ratio);
+
+            document.getElementById('line_newcoin_price').innerHTML = `${results.p_newcoin.toFixed(6)} FDUSD`;
+            document.getElementById('line_fdusd_profit').innerHTML = `${results.user_fdusd_value.toFixed(2)} FDUSD`;
+            document.getElementById('line_bnb_profit').innerHTML = `${results.user_bnb_value.toFixed(2)} FDUSD`;
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
