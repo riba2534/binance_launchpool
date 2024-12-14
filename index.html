@@ -385,41 +385,44 @@
                 return;
             }
 
-            // 计算 NEWCOIN价格和池的分配量
-            let { p_newcoin, fdusd_newcoin, bnb_newcoin } = calculate_newcoin_price(total_newcoin, days, fdusd_apy, total_fdusd_staked, bnb_ratio, fdusd_ratio);
+            // 计算每个池的NEWCOIN分配总量
+            let fdusd_pool_total = total_newcoin * (fdusd_ratio / 100);
+            let bnb_pool_total = total_newcoin * (bnb_ratio / 100);
 
-            // 用户在 FDUSD 池获得的 NEWCOIN 数量
-            let user_fdusd_newcoin = fdusd_newcoin * (user_fdusd_invest / total_fdusd_staked);
+            // 计算用户实际投资的收益
+            let user_fdusd_newcoin = user_fdusd_invest > 0 ? 
+                (user_fdusd_invest / total_fdusd_staked) * fdusd_pool_total : 0;
+            
+            let user_bnb_newcoin = user_bnb_invest > 0 ? 
+                (user_bnb_invest / total_bnb_staked) * bnb_pool_total : 0;
 
-            // 用户在 BNB 池获得的 NEWCOIN 数量
-            let user_bnb_newcoin = bnb_newcoin * (user_bnb_invest / total_bnb_staked);
-
-            // 总获得的 NEWCOIN
+            // 用户总获得的NEWCOIN
             let total_newcoin_gained = user_fdusd_newcoin + user_bnb_newcoin;
 
-            // NEWCOIN 总价值 (以FDUSD计)
-            let total_fdusd_value = total_newcoin_gained * p_newcoin;
+            // 计算NEWCOIN价格
+            let { p_newcoin } = calculate_newcoin_price(total_newcoin, days, fdusd_apy, total_fdusd_staked, bnb_ratio, fdusd_ratio);
 
-            // 模拟投资10000 FDUSD的收益计算
-            let test_fdusd_invest = 10000;
+            // 计算总价值
+            let total_value = total_newcoin_gained * p_newcoin;
+
+            // 模拟10000 FDUSD投资对比
+            let test_amount = 10000;
             
-            // FDUSD池收益计算
-            let fdusd_pool_newcoin = fdusd_newcoin * (test_fdusd_invest / total_fdusd_staked);
+            // FDUSD池收益
+            let fdusd_pool_newcoin = (test_amount / total_fdusd_staked) * fdusd_pool_total;
             let fdusd_pool_value = fdusd_pool_newcoin * p_newcoin;
-            let fdusd_pool_profit = fdusd_pool_value; // 收益就是获得的 NEWCOIN 的价值
 
-            // BNB池收益计算
-            let equivalent_bnb = test_fdusd_invest / bnb_price; // 用10000 FDUSD可以买多少BNB
-            let bnb_pool_newcoin = bnb_newcoin * (equivalent_bnb / total_bnb_staked);
+            // BNB池收益（先将FDUSD转换为BNB）
+            let equivalent_bnb = test_amount / bnb_price;
+            let bnb_pool_newcoin = (equivalent_bnb / total_bnb_staked) * bnb_pool_total;
             let bnb_pool_value = bnb_pool_newcoin * p_newcoin;
-            let bnb_pool_profit = bnb_pool_value; // 收益就是获得的 NEWCOIN 的价值
 
-            // 更新页面显示
+            // 更新显示结果
             document.getElementById('line_total_newcoin').innerHTML = `${total_newcoin_gained.toFixed(6)} NEWCOIN`;
             document.getElementById('line_newcoin_price').innerHTML = `${p_newcoin.toFixed(4)} FDUSD`;
-            document.getElementById('line_total_value').innerHTML = `${total_fdusd_value.toFixed(2)} FDUSD`;
-            document.getElementById('line_fdusd_profit').innerHTML = `${fdusd_pool_profit.toFixed(2)} FDUSD`;
-            document.getElementById('line_bnb_profit').innerHTML = `${bnb_pool_profit.toFixed(2)} FDUSD`;
+            document.getElementById('line_total_value').innerHTML = `${total_value.toFixed(2)} FDUSD`;
+            document.getElementById('line_fdusd_profit').innerHTML = `${fdusd_pool_value.toFixed(2)} FDUSD`;
+            document.getElementById('line_bnb_profit').innerHTML = `${bnb_pool_value.toFixed(2)} FDUSD`;
 
             document.getElementById('results').style.display = 'block';
         }
